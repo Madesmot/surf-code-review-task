@@ -83,21 +83,21 @@ public class Index implements AutoCloseable {
 
                 strings.stream()
                         .flatMap(str -> Stream.of(str.split(WHITESPACE)))
-                        .forEach(word -> invertedIndex.compute(word, (k, v) -> {
-                            if (v == null) return List.of(new Pointer(pathFile, 1));
+                        .forEach(word -> invertedIndex.compute(word, (k, oldPointers) -> {
+                            if (oldPointers == null) return List.of(new Pointer(pathFile, 1));
 
                             else {
-                                List<Pointer> pointers = new ArrayList<>();
-                                if (v.stream().noneMatch(pointer -> pointer.getFilePath().equals(pathFile))) {
-                                    pointers.add(new Pointer(pathFile, 1));
+                                List<Pointer> newPointers = new ArrayList<>();
+                                if (oldPointers.stream().noneMatch(pointer -> pointer.getFilePath().equals(pathFile))) {
+                                    newPointers.add(new Pointer(pathFile, 1));
                                 }
-                                v.forEach(pointer -> {
+                                oldPointers.forEach(pointer -> {
                                     if (pointer.getFilePath().equals(pathFile)) {
                                         pointer.setCount(pointer.getCount() + 1);
                                     }
                                 });
-                                pointers.addAll(v);
-                                return pointers;
+                                newPointers.addAll(oldPointers);
+                                return newPointers;
                             }
                         }));
             } catch (IOException e) {
