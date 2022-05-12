@@ -34,15 +34,14 @@ class IndexTest {
 
         assertThat(invertedIndex.get("arman"),
                 hasItems(
-                        new Pointer("src/test/resources/samples/2.txt", 2),
-                        new Pointer("src/test/resources/samples/1.txt", 2)
+                        new Pointer("src/test/resources/samples/2.txt", 1),
+                        new Pointer("src/test/resources/samples/1.txt", 1)
                 ));
         assertThat(invertedIndex.get("da"),
                 hasItems(
-                        new Pointer("src/test/resources/samples/1.txt", 4),
-                        new Pointer("src/test/resources/samples/1.txt", 4),
-                        new Pointer("src/test/resources/samples/2.txt", 4),
-                        new Pointer("src/test/resources/samples/3.txt", 4)
+                        new Pointer("src/test/resources/samples/1.txt", 2),
+                        new Pointer("src/test/resources/samples/2.txt", 1),
+                        new Pointer("src/test/resources/samples/3.txt", 1)
                 ));
     }
 }

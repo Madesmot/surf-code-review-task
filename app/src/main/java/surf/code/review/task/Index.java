@@ -3,17 +3,16 @@ package surf.code.review.task;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -79,33 +78,31 @@ public class Index implements AutoCloseable {
         @Override
         public void run() {
             try {
-                String filePath = path.toString();
-                Map<String, Long> wordContMap = Files.readAllLines(path).stream()
-                        .flatMap(string -> Stream.of(string.split(WHITESPACE)))
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+                List<String> strings = Files.readAllLines(path);
+                String pathFile = path.toString();
 
-                wordContMap.forEach((word, count) -> {
-                    invertedIndex.computeIfPresent(word, (w, pointers) -> {
-                        List<Pointer> newPointers = pointers.stream()
-                                //.filter(pointer -> !filePath.equals(pointer.getFilePath()))
-                                .map(pointer -> {
-                                    long oldCount = pointer.getCount();
-                                    long newCount = count + oldCount;
-                                    pointer.setCount(newCount);
-                                    return new Pointer(filePath, newCount);
-                                })
-                                .collect(Collectors.toList());
-                        newPointers.addAll(pointers);
-                        return newPointers;
-                    });
+                strings.stream()
+                        .flatMap(str -> Stream.of(str.split(WHITESPACE)))
+                        .forEach(word -> invertedIndex.compute(word, (k, v) -> {
+                            if (v == null) return List.of(new Pointer(pathFile, 1));
 
-                    invertedIndex.computeIfAbsent(word, s -> List.of(new Pointer(filePath, count)));
-                });
+                            else {
+                                List<Pointer> pointers = new ArrayList<>();
+                                if (v.stream().noneMatch(pointer -> pointer.getFilePath().equals(pathFile))) {
+                                    pointers.add(new Pointer(pathFile, 1));
+                                }
+                                v.forEach(pointer -> {
+                                    if (pointer.getFilePath().equals(pathFile)) {
+                                        pointer.setCount(pointer.getCount() + 1);
+                                    }
+                                });
+                                pointers.addAll(v);
+                                return pointers;
+                            }
+                        }));
             } catch (IOException e) {
-                Thread.currentThread().interrupt();
-                // or another logger
+                // no reason to throw exception runtime
                 LOGGER.log(Level.WARNING, "Error while read file " + Thread.currentThread().getName() + " " + e.getMessage());
-                // there are no reason to throw Runtime Exception
             }
         }
     }
