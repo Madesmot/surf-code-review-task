@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
+// алгоритм подсчитывает кличество вхождении слова в файлах, принимая на вход директорию с этими файлами
 public class Index implements AutoCloseable {
     // or another logger
     private static final Logger LOGGER = Logger.getLogger("IndexLogger");
